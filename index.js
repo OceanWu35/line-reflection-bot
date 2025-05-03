@@ -3,7 +3,7 @@ const line = require('@line/bot-sdk');
 
 const config = {
   channelAccessToken: '***REMOVED***',
-  channelSecret: '5c699f1ece44e1986f0f612184a4354e'
+  channelSecret: '***REMOVED***'
 };
 
 const app = express();
@@ -29,4 +29,5 @@ app.listen(3000, () => {
   console.log('機器人正在監聽 port 3000!');
 });
 // 測試用註解：確認 Git 推送流程是否順利
+
 
