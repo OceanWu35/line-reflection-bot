@@ -42,6 +42,11 @@ async function handleEvent(event) {
 
   const userMessage = event.message.text;
 
+    // 綁定圖文選單
+    const richMenuId = '16700003'; 
+    await client.linkRichMenuToUser(event.source.userId, richMenuId);
+    console.log(`已綁定圖文選單給使用者 ${event.source.userId}`);
+
   const { error } = await supabase.from('messages').insert([
     {
       user_id: event.source.userId,
