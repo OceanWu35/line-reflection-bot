@@ -1,7 +1,6 @@
 const express = require('express');
 const line = require('@line/bot-sdk');
 const { createClient } = require('@supabase/supabase-js');
-
 require('dotenv').config(); 
 
 console.log("=== Render 上的環境變數 ===");
@@ -21,8 +20,7 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqYXZvcnRpcmt6cnh5ZmF1dnd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyODk4NDksImV4cCI6MjA2MTg2NTg0OX0.GWcICDpFWwJJCBJCG04ZzT4pIHjWenwtSF_iE3cyLao'
 );
 
-const app = express();
-app.use(express.json());
+const app = express(); // ❗️不要加 express.json()
 
 app.post('/webhook', line.middleware(config), async (req, res) => {
   const events = req.body.events;
@@ -36,7 +34,7 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
 });
 
 async function handleEvent(event) {
-    console.log('收到的 event：', JSON.stringify(event, null, 2));
+  console.log('收到的 event：', JSON.stringify(event, null, 2));
 
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
@@ -44,7 +42,6 @@ async function handleEvent(event) {
 
   const userMessage = event.message.text;
 
-  // 儲存到 Supabase
   const { error } = await supabase.from('messages').insert([
     {
       user_id: event.source.userId,
@@ -69,6 +66,5 @@ app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
 
-// 測試用註解：確認 Git 推送流程是否順利
 
 
