@@ -2,6 +2,9 @@ const express = require('express');
 const line = require('@line/bot-sdk');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
+const dayjs = require('dayjs');
+const isoWeek = require('dayjs/plugin/isoWeek');
+dayjs.extend(isoWeek);
 
 // --- 環境變數驗證 ---
 console.log("=== Render 上的環境變數 ===");
@@ -70,6 +73,66 @@ async function handleEvent(event) {
     console.error('Rich Menu 綁定或用戶紀錄錯誤:', e);
   }
 
+  // --- 查詢今日紀錄 ---
+  if (userMessage === '查詢今日紀錄') {
+    const today = dayjs().format('YYYY-MM-DD');
+    const { data, error } = await supabase
+      .from('messages')
+      .select('content, created_at')
+      .eq('user_id', userId)
+      .gte('created_at', `${today}T00:00:00`)
+      .lte('created_at', `${today}T23:59:59`)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('查詢今日紀錄錯誤:', error);
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: '查詢失敗，請稍後再試～'
+      });
+    }
+
+    const replyText = data.length
+      ? data.map((msg, i) => `${i + 1}. ${msg.content}`).join('\n')
+      : '你今天還沒有留下任何紀錄喔！';
+
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: `📅 今日紀錄：\n${replyText}`
+    });
+  }
+
+   // --- 查詢本週紀錄 ---
+   if (userMessage === '查詢本週紀錄') {
+    const startOfWeek = dayjs().startOf('isoWeek').format();
+    const endOfWeek = dayjs().endOf('isoWeek').format();
+
+    const { data, error } = await supabase
+      .from('messages')
+      .select('content, created_at')
+      .eq('user_id', userId)
+      .gte('created_at', startOfWeek)
+      .lte('created_at', endOfWeek)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('查詢本週紀錄錯誤:', error);
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: '查詢失敗，請稍後再試～'
+      });
+    }
+
+    const replyText = data.length
+      ? data.map((msg, i) => `${i + 1}. ${msg.content}`).join('\n')
+      : '這週你還沒有留下任何紀錄喔！';
+
+    return client.replyMessage(event.replyToken, {
+      type: 'text',
+      text: `🗓️ 本週紀錄：\n${replyText}`
+    });
+  }
+  
   // --- 儲存訊息 ---
   const { error: insertError } = await supabase.from('messages').insert([
     {
