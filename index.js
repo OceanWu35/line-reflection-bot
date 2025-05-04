@@ -2,10 +2,12 @@ const express = require('express');
 const line = require('@line/bot-sdk');
 const { createClient } = require('@supabase/supabase-js');
 
+require('dotenv').config(); 
+
 // Line 設定
 const config = {
-  channelAccessToken: '***REMOVED***',
-  channelSecret: '***REMOVED***'
+  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
+  channelSecret: process.env.CHANNEL_SECRET
 };
 const client = new line.Client(config);
 
