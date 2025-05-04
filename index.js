@@ -4,6 +4,10 @@ const { createClient } = require('@supabase/supabase-js');
 
 require('dotenv').config(); 
 
+console.log("=== Render 上的環境變數 ===");
+console.log("CHANNEL_ACCESS_TOKEN:", process.env.CHANNEL_ACCESS_TOKEN);
+console.log("CHANNEL_SECRET:", process.env.CHANNEL_SECRET);
+
 // Line 設定
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
