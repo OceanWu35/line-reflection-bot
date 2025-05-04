@@ -30,6 +30,8 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
 });
 
 async function handleEvent(event) {
+    console.log('收到的 event：', JSON.stringify(event, null, 2));
+
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
