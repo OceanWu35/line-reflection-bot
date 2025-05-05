@@ -3,8 +3,7 @@ import { Client } from '@line/bot-sdk';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
-import isoWeek from './node_modules/dayjs/plugin/isoWeek.js';
-
+import isoWeek from 'dayjs/plugin/isoWeek';
 
 dotenv.config();
 
@@ -15,15 +14,16 @@ const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET
 };
-const client = new line.Client(config);
+const client = new Client(config);
 
 // --- Supabase 設定 ---
 const supabase = createClient(
-  'https://fjavortirkzrxyfauvwx.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqYXZvcnRpcmt6cnh5ZmF1dnd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyODk4NDksImV4cCI6MjA2MTg2NTg0OX0.GWcICDpFWwJJCBJCG04ZzT4pIHjWenwtSF_iE3cyLao'
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
-const app = express(); // 不使用 express.json()
+const app = express();
+app.use(express.json()); // 開啟 JSON 解析
 
 // --- Webhook 入口 ---
 app.post('/webhook', line.middleware(config), async (req, res) => {
@@ -49,24 +49,6 @@ async function handleEvent(event) {
 
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
-  }
-
-  // --- Rich Menu 綁定 ---
-  const richMenuId = 'richmenu-4eae5690441718ee0d1610528012be5b';
-  try {
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (!existingUser) {
-      await client.linkRichMenuToUser(userId, richMenuId);
-      console.log(`已綁定 Rich Menu 給使用者 ${userId}`);
-      await supabase.from('users').insert([{ user_id: userId }]);
-    }
-  } catch (e) {
-    console.error('Rich Menu 綁定或用戶紀錄錯誤:', e);
   }
 
   // --- 查詢今日紀錄 ---
@@ -154,7 +136,7 @@ async function handleEvent(event) {
 
 // --- 綁定 Rich Menu ---
 async function linkRichMenu(userId) {
-  const richMenuId = '16700635';
+  const richMenuId = 'richmenu-4eae5690441718ee0d1610528012be5b';
   await client.linkRichMenuToUser(userId, richMenuId);
   console.log(`已綁定 Rich Menu 給使用者 ${userId}`);
 }
@@ -163,6 +145,7 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
+
 
 
 
