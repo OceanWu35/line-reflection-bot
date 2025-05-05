@@ -6,6 +6,10 @@ const dayjs = require('dayjs');
 const isoWeek = require('dayjs/plugin/isoWeek');
 dayjs.extend(isoWeek);
 
+const richMenuId = '16700635';
+await client.linkRichMenuToUser(userId, richMenuId);
+
+
 // --- 環境變數驗證 ---
 console.log("=== Render 上的環境變數 ===");
 console.log("CHANNEL_SECRET:", process.env.CHANNEL_SECRET);
