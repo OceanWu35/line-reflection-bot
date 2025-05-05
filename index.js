@@ -47,7 +47,7 @@ async function handleEvent(event) {
   }
 
   const userId = event.source.userId;
-  const userMessage = event.message.text;
+  const userMessage = event.message.text.trim();
 
   // --- Rich Menu 綁定 ---
   const richMenuId = 'richmenu-4eae5690441718ee0d1610528012be5b';
@@ -149,6 +149,7 @@ async function handleEvent(event) {
     console.error('回覆訊息失敗:', err);
   }
 }
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
