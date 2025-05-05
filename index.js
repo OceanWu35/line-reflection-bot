@@ -132,7 +132,7 @@ async function handleEvent(event) {
       text: `🗓️ 本週紀錄：\n${replyText}`
     });
   }
-  
+
   // --- 儲存訊息 ---
   const { error: insertError } = await supabase.from('messages').insert([
     {
@@ -146,7 +146,8 @@ async function handleEvent(event) {
 
   // --- 回覆訊息 ---
   const replyMessage = {
-    type: 'text',
+    type: 'text',git , Push,
+
     text: `你說的是：「${userMessage}」\n這句話我已經記起來了喔！`
   };
 
