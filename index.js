@@ -44,6 +44,7 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
 
 // --- 主處理函式 ---
 async function handleEvent(event) {
+  await client.linkRichMenuToUser(userId, richMenuId);
   console.log('收到的 event：', JSON.stringify(event, null, 2));
 
   if (event.type !== 'message' || event.message.type !== 'text') {
