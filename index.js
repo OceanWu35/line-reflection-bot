@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
 dotenv.config();
-dayjs.extend(isoWeek);
+dayjs.extend(isoWeek); 
 
 // --- LINE 設定 ---
 const config = {
