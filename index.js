@@ -1,5 +1,5 @@
 import express from 'express';
-import { Client } from '@line/bot-sdk';
+import { Client, middleware } from '@line/bot-sdk'; // 引入 middleware
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json()); // 開啟 JSON 解析
 
 // --- Webhook 入口 ---
-app.post('/webhook', client.middleware(config), async (req, res) => {
+app.post('/webhook', middleware(config), async (req, res) => { // 使用 middleware 來處理請求
   const events = req.body.events;
   try {
     const results = await Promise.all(events.map(handleEvent));
@@ -145,6 +145,7 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
+
 
 
 
