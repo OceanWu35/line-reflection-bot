@@ -43,7 +43,7 @@ async function handleEvent(event) {
   const userMessage = event.message.text.trim();
 
   // 綁定 Rich Menu
-  await linkRichMenu(userId);
+  await linkRichMenu(userId);  // 呼叫 linkRichMenu 綁定圖文選單
 
   console.log('收到的 event：', JSON.stringify(event, null, 2));
 
@@ -135,16 +135,40 @@ async function handleEvent(event) {
 }
 
 // --- 綁定 Rich Menu ---
-async function linkRichMenu(userId) {
-  const richMenuId = 'richmenu-4fc3091e1478bab01d430262978c8461';
-  await client.linkRichMenuToUser(userId, richMenuId);
-  console.log(`已綁定 Rich Menu 給使用者 ${userId}`);
+async function linkRichMenu(userId, richMenuId) {
+  try {
+    // 使用動態的 richMenuId 來綁定圖文選單
+    await client.linkRichMenuToUser(userId, richMenuId);
+    console.log(`已綁定 Rich Menu 給使用者 ${userId}，選單 ID：${richMenuId}`);
+  } catch (error) {
+    console.error('綁定 Rich Menu 錯誤:', error);
+  }
 }
+
+// 新增 API 端點來更新圖文選單
+app.post('/update-richmenu', async (req, res) => {
+  const { userId, richMenuId } = req.body;
+
+  if (!userId || !richMenuId) {
+    return res.status(400).json({ message: '缺少 userId 或 richMenuId' });
+  }
+
+  try {
+    // 呼叫 linkRichMenu 函數來綁定新的圖文選單
+    await linkRichMenu(userId, richMenuId);
+    res.status(200).json({ message: '圖文選單更新成功' });
+  } catch (error) {
+    console.error('更新圖文選單錯誤:', error);
+    res.status(500).json({ message: '圖文選單更新失敗' });
+  }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
+
+
 
 
 
