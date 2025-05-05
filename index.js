@@ -136,7 +136,7 @@ async function handleEvent(event) {
 
 // --- 綁定 Rich Menu ---
 async function linkRichMenu(userId) {
-  const richMenuId = 'richmenu-4eae5690441718ee0d1610528012be5b';
+  const richMenuId = 'richmenu-4fc3091e1478bab01d430262978c8461';
   await client.linkRichMenuToUser(userId, richMenuId);
   console.log(`已綁定 Rich Menu 給使用者 ${userId}`);
 }
