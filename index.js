@@ -1,19 +1,12 @@
-const express = require('express');
-const line = require('@line/bot-sdk');
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
-const dayjs = require('dayjs');
-const isoWeek = require('dayjs/plugin/isoWeek');
+import express from 'express';
+import line from '@line/bot-sdk';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+
+dotenv.config();
 dayjs.extend(isoWeek);
-
-const richMenuId = '16700635';
-await client.linkRichMenuToUser(userId, richMenuId);
-
-
-// --- 環境變數驗證 ---
-console.log("=== Render 上的環境變數 ===");
-console.log("CHANNEL_SECRET:", process.env.CHANNEL_SECRET);
-console.log("CHANNEL_ACCESS_TOKEN:", process.env.CHANNEL_ACCESS_TOKEN);
 
 // --- LINE 設定 ---
 const config = {
@@ -44,15 +37,17 @@ app.post('/webhook', line.middleware(config), async (req, res) => {
 
 // --- 主處理函式 ---
 async function handleEvent(event) {
-  await client.linkRichMenuToUser(userId, richMenuId);
+  const userId = event.source.userId;
+  const userMessage = event.message.text.trim();
+
+  // 綁定 Rich Menu
+  await linkRichMenu(userId);
+
   console.log('收到的 event：', JSON.stringify(event, null, 2));
 
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
-
-  const userId = event.source.userId;
-  const userMessage = event.message.text.trim();
 
   // --- Rich Menu 綁定 ---
   const richMenuId = 'richmenu-4eae5690441718ee0d1610528012be5b';
@@ -155,11 +150,18 @@ async function handleEvent(event) {
   }
 }
 
+// --- 綁定 Rich Menu ---
+async function linkRichMenu(userId) {
+  const richMenuId = '16700635';
+  await client.linkRichMenuToUser(userId, richMenuId);
+  console.log(`已綁定 Rich Menu 給使用者 ${userId}`);
+}
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
+
 
 
 
