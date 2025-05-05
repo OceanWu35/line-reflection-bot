@@ -3,7 +3,8 @@ import { Client } from '@line/bot-sdk';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
+import isoWeek from './node_modules/dayjs/plugin/isoWeek.js';
+
 
 dotenv.config();
 
