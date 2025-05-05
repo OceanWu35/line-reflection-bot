@@ -1,11 +1,13 @@
-const express = require('express');
-const line = require('@line/bot-sdk');
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
-const dayjs = require('dayjs');
-const isoWeek = require('dayjs/plugin/isoWeek');  // 使用 require 來加載插件
+import express from 'express';
+import { Client } from '@line/bot-sdk';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
 
-dayjs.extend(isoWeek); 
+dotenv.config();
+
+dayjs.extend(isoWeek);
 
 // --- LINE 設定 ---
 const config = {
