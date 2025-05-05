@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json()); // 開啟 JSON 解析
 
 // --- Webhook 入口 ---
-app.post('/webhook', line.middleware(config), async (req, res) => {
+app.post('/webhook', client.middleware(config), async (req, res) => {
   const events = req.body.events;
   try {
     const results = await Promise.all(events.map(handleEvent));
@@ -145,6 +145,7 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`機器人正在監聽 port ${port}!`);
 });
+
 
 
 
