@@ -2,10 +2,11 @@ import express from 'express';
 import { Client, middleware } from '@line/bot-sdk';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-dotenv.config();
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek.js';
 dayjs.extend(isoWeek);
+
+dotenv.config();
 
 // --- LINE 設定 ---
 const config = {
@@ -24,14 +25,10 @@ const supabase = createClient(
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
-
-app.use(express.json()); // 解析 JSON
+app.use(express.json()); // ⚠️ 確保這一行在 middleware 前
 
 // --- Webhook 路由 ---
 app.post('/webhook', middleware(config), async (req, res) => {
-  console.log('🔍 headers:', req.headers);
-  console.log('📝 body:', JSON.stringify(req.body, null, 2));
-
   const events = req.body.events;
 
   try {
@@ -57,8 +54,11 @@ async function handleEvent(event) {
 
   const userMessage = event.message.text.trim();
 
-  // 3. 查詢今日紀錄（模糊比對）
-  if (userMessage.includes('查詢') && userMessage.includes('今日')) {
+  // --- 關鍵字判斷（更靈活） ---
+  const contains = (keywords) => keywords.some(kw => userMessage.includes(kw));
+
+  // 3. 查詢「今日紀錄」
+  if (contains(['查詢', '今天', '今日'])) {
     const today = dayjs().format('YYYY-MM-DD');
     const { data, error } = await supabase
       .from('messages')
@@ -86,8 +86,8 @@ async function handleEvent(event) {
     });
   }
 
-  // 4. 查詢本週紀錄（模糊比對）
-  if (userMessage.includes('查詢') && userMessage.includes('本週')) {
+  // 4. 查詢「本週紀錄」
+  if (contains(['查詢', '本週', '這週'])) {
     const startOfWeek = dayjs().startOf('isoWeek').format();
     const endOfWeek = dayjs().endOf('isoWeek').format();
 
@@ -117,12 +117,12 @@ async function handleEvent(event) {
     });
   }
 
-  // 5. 儲存訊息，補上 created_at
+  // 5. 儲存訊息（含 created_at）
   const { error: insertError } = await supabase.from('messages').insert([
     {
       user_id: userId,
       content: userMessage,
-      created_at: new Date().toISOString() // ✅ 明確加上時間
+      created_at: new Date().toISOString()
     }
   ]);
   if (insertError) {
@@ -150,7 +150,7 @@ async function linkRichMenu(userId, richMenuId) {
   }
 }
 
-// --- 可選：切換圖文選單 API ---
+// --- 手動切換 Rich Menu API（可選）---
 app.post('/update-richmenu', async (req, res) => {
   const { userId, richMenuId } = req.body;
 
@@ -172,6 +172,7 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Bot 正在監聽 port ${port}`);
 });
+
 
 
 
