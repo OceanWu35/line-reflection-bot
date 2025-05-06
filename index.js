@@ -25,6 +25,8 @@ const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
 
+app.use(express.json()); // 解析 JSON
+
 // --- Webhook 路由 ---
 app.post('/webhook', middleware(config), async (req, res) => {
   console.log('🔍 headers:', req.headers);
@@ -41,13 +43,11 @@ app.post('/webhook', middleware(config), async (req, res) => {
   }
 });
 
-app.use(express.json()); // 解析 JSON
-
 // --- 主處理函式 ---
 async function handleEvent(event) {
   const userId = event.source.userId;
 
-  // 1. 綁定 Rich Menu（修正這裡）
+  // 1. 綁定 Rich Menu
   await linkRichMenu(userId, DEFAULT_RICH_MENU_ID);
 
   // 2. 檢查是否是文字訊息
@@ -57,8 +57,8 @@ async function handleEvent(event) {
 
   const userMessage = event.message.text.trim();
 
-  // 3. 查詢今日紀錄
-  if (userMessage === '查詢今日紀錄') {
+  // 3. 查詢今日紀錄（模糊比對）
+  if (userMessage.includes('查詢') && userMessage.includes('今日')) {
     const today = dayjs().format('YYYY-MM-DD');
     const { data, error } = await supabase
       .from('messages')
@@ -86,8 +86,8 @@ async function handleEvent(event) {
     });
   }
 
-  // 4. 查詢本週紀錄
-  if (userMessage === '查詢本週紀錄') {
+  // 4. 查詢本週紀錄（模糊比對）
+  if (userMessage.includes('查詢') && userMessage.includes('本週')) {
     const startOfWeek = dayjs().startOf('isoWeek').format();
     const endOfWeek = dayjs().endOf('isoWeek').format();
 
@@ -117,11 +117,12 @@ async function handleEvent(event) {
     });
   }
 
-  // 5. 儲存訊息
+  // 5. 儲存訊息，補上 created_at
   const { error: insertError } = await supabase.from('messages').insert([
     {
       user_id: userId,
-      content: userMessage
+      content: userMessage,
+      created_at: new Date().toISOString() // ✅ 明確加上時間
     }
   ]);
   if (insertError) {
@@ -171,9 +172,6 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Bot 正在監聽 port ${port}`);
 });
-
-
-
 
 
 
