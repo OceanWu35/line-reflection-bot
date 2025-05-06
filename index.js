@@ -13,6 +13,10 @@ const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET
 };
+
+console.log('✅ channelSecret:', process.env.CHANNEL_SECRET ? 'OK' : '❌ 缺少 channelSecret');
+console.log('✅ channelAccessToken:', process.env.CHANNEL_ACCESS_TOKEN ? 'OK' : '❌ 缺少 channelAccessToken');
+
 const client = new Client(config);
 
 // --- Supabase 設定 ---
@@ -25,7 +29,9 @@ const supabase = createClient(
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
-app.use(express.json()); // ⚠️ 確保這一行在 middleware 前
+
+// ⚠️ 千萬不要加 express.json()，會破壞 LINE webhook 的簽章驗證
+// app.use(express.json());
 
 // --- Webhook 路由 ---
 app.post('/webhook', middleware(config), async (req, res) => {
@@ -151,7 +157,7 @@ async function linkRichMenu(userId, richMenuId) {
 }
 
 // --- 手動切換 Rich Menu API（可選）---
-app.post('/update-richmenu', async (req, res) => {
+app.post('/update-richmenu', express.json(), async (req, res) => {
   const { userId, richMenuId } = req.body;
 
   if (!userId || !richMenuId) {
@@ -172,12 +178,5 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Bot 正在監聽 port ${port}`);
 });
-
-
-
-
-
-
-
 
 
