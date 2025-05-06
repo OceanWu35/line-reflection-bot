@@ -1,13 +1,11 @@
 import express from 'express';
-import { Client, middleware } from '@line/bot-sdk'; // 引入 middleware
+import { Client, middleware } from '@line/bot-sdk';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+dotenv.config();
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek.js';
-
 dayjs.extend(isoWeek);
-
-dotenv.config();
 
 // --- LINE 設定 ---
 const config = {
@@ -22,17 +20,24 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-const app = express();
-app.use(express.json()); // 開啟 JSON 解析
+// --- 預設 Rich Menu ID ---
+const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
-// --- Webhook 入口 ---
-app.post('/webhook', middleware(config), async (req, res) => { // 使用 middleware 來處理請求
+const app = express();
+app.use(express.json()); // 解析 JSON
+
+// --- Webhook 路由 ---
+app.post('/webhook', middleware(config), async (req, res) => {
+  console.log('🔍 headers:', req.headers);
+  console.log('📝 body:', JSON.stringify(req.body, null, 2));
+
   const events = req.body.events;
+
   try {
     const results = await Promise.all(events.map(handleEvent));
     res.status(200).json(results);
   } catch (err) {
-    console.error('Webhook 處理錯誤:', err);
+    console.error('Webhook 錯誤:', err);
     res.status(500).end();
   }
 });
@@ -40,18 +45,18 @@ app.post('/webhook', middleware(config), async (req, res) => { // 使用 middlew
 // --- 主處理函式 ---
 async function handleEvent(event) {
   const userId = event.source.userId;
-  const userMessage = event.message.text.trim();
 
-  // 綁定 Rich Menu
-  await linkRichMenu(userId);  // 呼叫 linkRichMenu 綁定圖文選單
+  // 1. 綁定 Rich Menu（修正這裡）
+  await linkRichMenu(userId, DEFAULT_RICH_MENU_ID);
 
-  console.log('收到的 event：', JSON.stringify(event, null, 2));
-
+  // 2. 檢查是否是文字訊息
   if (event.type !== 'message' || event.message.type !== 'text') {
     return Promise.resolve(null);
   }
 
-  // --- 查詢今日紀錄 ---
+  const userMessage = event.message.text.trim();
+
+  // 3. 查詢今日紀錄
   if (userMessage === '查詢今日紀錄') {
     const today = dayjs().format('YYYY-MM-DD');
     const { data, error } = await supabase
@@ -80,7 +85,7 @@ async function handleEvent(event) {
     });
   }
 
-  // --- 查詢本週紀錄 ---
+  // 4. 查詢本週紀錄
   if (userMessage === '查詢本週紀錄') {
     const startOfWeek = dayjs().startOf('isoWeek').format();
     const endOfWeek = dayjs().endOf('isoWeek').format();
@@ -111,7 +116,7 @@ async function handleEvent(event) {
     });
   }
 
-  // --- 儲存訊息 ---
+  // 5. 儲存訊息
   const { error: insertError } = await supabase.from('messages').insert([
     {
       user_id: userId,
@@ -119,33 +124,31 @@ async function handleEvent(event) {
     }
   ]);
   if (insertError) {
-    console.error('Supabase 儲存訊息失敗:', insertError);
+    console.error('儲存訊息失敗:', insertError);
   }
 
-  // --- 回覆使用者訊息 ---
+  // 6. 回覆訊息
   try {
-    const replyMessage = {
+    return await client.replyMessage(event.replyToken, {
       type: 'text',
       text: `你說的是：「${userMessage}」\n這句話我已經記起來了喔！`
-    };
-    return await client.replyMessage(event.replyToken, replyMessage);
+    });
   } catch (err) {
-    console.error('回覆訊息失敗:', err);
+    console.error('回覆失敗:', err);
   }
 }
 
 // --- 綁定 Rich Menu ---
 async function linkRichMenu(userId, richMenuId) {
   try {
-    // 使用動態的 richMenuId 來綁定圖文選單
     await client.linkRichMenuToUser(userId, richMenuId);
-    console.log(`已綁定 Rich Menu 給使用者 ${userId}，選單 ID：${richMenuId}`);
+    console.log(`綁定 Rich Menu：${richMenuId} → 使用者 ${userId}`);
   } catch (error) {
-    console.error('綁定 Rich Menu 錯誤:', error);
+    console.error('Rich Menu 綁定錯誤:', error);
   }
 }
 
-// 新增 API 端點來更新圖文選單
+// --- 可選：切換圖文選單 API ---
 app.post('/update-richmenu', async (req, res) => {
   const { userId, richMenuId } = req.body;
 
@@ -154,19 +157,20 @@ app.post('/update-richmenu', async (req, res) => {
   }
 
   try {
-    // 呼叫 linkRichMenu 函數來綁定新的圖文選單
     await linkRichMenu(userId, richMenuId);
-    res.status(200).json({ message: '圖文選單更新成功' });
+    res.status(200).json({ message: '更新成功' });
   } catch (error) {
     console.error('更新圖文選單錯誤:', error);
-    res.status(500).json({ message: '圖文選單更新失敗' });
+    res.status(500).json({ message: '更新失敗' });
   }
 });
 
+// --- 啟動伺服器 ---
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`機器人正在監聽 port ${port}!`);
+  console.log(`🚀 Bot 正在監聽 port ${port}`);
 });
+
 
 
 
