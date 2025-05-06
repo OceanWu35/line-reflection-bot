@@ -24,7 +24,6 @@ const supabase = createClient(
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
-app.use(express.json()); // 解析 JSON
 
 // --- Webhook 路由 ---
 app.post('/webhook', middleware(config), async (req, res) => {
@@ -41,6 +40,8 @@ app.post('/webhook', middleware(config), async (req, res) => {
     res.status(500).end();
   }
 });
+
+app.use(express.json()); // 解析 JSON
 
 // --- 主處理函式 ---
 async function handleEvent(event) {
