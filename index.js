@@ -25,6 +25,10 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
+console.log('✅ SUPABASE_URL:', process.env.SUPABASE_URL ? 'OK' : '❌ 缺少 SUPABASE_URL');
+console.log('✅ SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? 'OK' : '❌ 缺少 SUPABASE_ANON_KEY');
+
+
 // --- 預設 Rich Menu ID ---
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
