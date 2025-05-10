@@ -8,8 +8,8 @@ dayjs.extend(isoWeek);
 
 dotenv.config();
 
-const utc = require('dayjs/plugin/utc');
-const timezone = require('dayjs/plugin/timezone'); // 如果有時區需求
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js'; // 如果有時區需求
 dayjs.extend(utc);
 dayjs.extend(timezone); 
 
