@@ -9,9 +9,9 @@ dayjs.extend(isoWeek);
 dotenv.config();
 
 import utc from 'dayjs/plugin/utc.js';
-import timezone from 'dayjs/plugin/timezone.js'; // 如果有時區需求
+import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(utc);
-dayjs.extend(timezone); 
+dayjs.extend(timezone);
 
 // --- LINE 設定 ---
 const config = {
@@ -33,14 +33,10 @@ const supabase = createClient(
 console.log('✅ SUPABASE_URL:', process.env.SUPABASE_URL ? 'OK' : '❌ 缺少 SUPABASE_URL');
 console.log('✅ SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? 'OK' : '❌ 缺少 SUPABASE_ANON_KEY');
 
-
 // --- 預設 Rich Menu ID ---
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
-
-// ⚠️ 千萬不要加 express.json()，會破壞 LINE webhook 的簽章驗證
-// app.use(express.json());
 
 // --- Webhook 路由 ---
 app.post('/webhook', middleware(config), async (req, res) => {
@@ -62,38 +58,40 @@ async function handleEvent(event) {
   // 1. 綁定 Rich Menu
   await linkRichMenu(userId, DEFAULT_RICH_MENU_ID);
 
-  // ✅ 處理 postback 查詢
-  // ✅ 新增：處理 postback 查詢今日紀錄
-if (event.type === 'postback' && event.postback?.data === '查詢今日紀錄') {
-  const todayStart = dayjs().startOf('day').utc().format();
-  const todayEnd = dayjs().endOf('day').utc().format();
+  // ✅ postback 查詢今日紀錄
+  if (event.type === 'postback' && event.postback?.data === '查詢今日紀錄') {
+    const todayStart = dayjs().startOf('day').utc().format();
+    const todayEnd = dayjs().endOf('day').utc().format();
 
-  const { data, error } = await supabase
-    .from('messages')
-    .select('content, created_at')
-    .eq('user_id', userId)
-    .gte('created_at', todayStart)
-    .lte('created_at', todayEnd)
-    .order('created_at', { ascending: true });
+    const { data, error } = await supabase
+      .from('messages')
+      .select('content, created_at')
+      .eq('user_id', userId)
+      .gte('created_at', todayStart)
+      .lte('created_at', todayEnd)
+      .order('created_at', { ascending: true });
 
-  if (error) {
-    console.error('Postback 查詢今日紀錄錯誤:', error);
+    if (error) {
+      console.error('Postback 查詢今日紀錄錯誤:', error);
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: '查詢失敗，請稍後再試～'
+      });
+    }
+
+    console.log(`📋 查詢到 ${data.length} 筆今日紀錄（Postback）`);
+
+    const replyText = data.length
+      ? data.map((msg, i) => `${i + 1}. ${msg.content}`).join('\n')
+      : '你今天還沒有留下任何紀錄喔！';
+
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: '查詢失敗，請稍後再試～'
+      text: `📅 今日紀錄：\n${replyText}`
     });
   }
 
-  const replyText = data.length
-    ? data.map((msg, i) => `${i + 1}. ${msg.content}`).join('\n')
-    : '你今天還沒有留下任何紀錄喔！';
-
-  return client.replyMessage(event.replyToken, {
-    type: 'text',
-    text: `📅 今日紀錄：\n${replyText}`
-  });
-}
-
+  // ✅ postback 查詢本週紀錄
   if (event.type === 'postback' && event.postback?.data === '查詢本週紀錄') {
     const startOfWeek = dayjs().startOf('isoWeek').utc().format();
     const endOfWeek = dayjs().endOf('isoWeek').utc().format();
@@ -169,7 +167,7 @@ if (event.type === 'postback' && event.postback?.data === '查詢今日紀錄') 
     });
   }
 
-  // 4. 查詢本週紀錄（同上）
+  // 4. 查詢本週紀錄
   if (contains(['查詢本週紀錄'])) {
     const startOfWeek = dayjs().startOf('isoWeek').utc().format();
     const endOfWeek = dayjs().endOf('isoWeek').utc().format();
@@ -239,7 +237,7 @@ async function linkRichMenu(userId, richMenuId) {
   }
 }
 
-// --- 手動切換 Rich Menu API（可選）---
+// --- 手動切換 Rich Menu API ---
 app.post('/update-richmenu', express.json(), async (req, res) => {
   const { userId, richMenuId } = req.body;
 
@@ -256,7 +254,7 @@ app.post('/update-richmenu', express.json(), async (req, res) => {
   }
 });
 
-// --- 測試首頁（給 Render 掃 port 用）---
+// --- 測試首頁 ---
 app.get('/', (req, res) => {
   res.send('🤖 LINE Reflection Bot is running!');
 });
@@ -266,3 +264,4 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Bot 正在監聽 port ${port}`);
 });
+
