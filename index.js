@@ -157,3 +157,40 @@ async function handleEvent(event) {
   }
 }
 
+// --- 綁定 Rich Menu ---
+async function linkRichMenu(userId, richMenuId) {
+  try {
+    await client.linkRichMenuToUser(userId, richMenuId);
+    console.log(綁定 Rich Menu：${richMenuId} → 使用者 ${userId});
+  } catch (error) {
+    console.error('Rich Menu 綁定錯誤:', error);
+  }
+}
+
+// --- 手動切換 Rich Menu API（可選）---
+app.post('/update-richmenu', express.json(), async (req, res) => {
+  const { userId, richMenuId } = req.body;
+
+  if (!userId || !richMenuId) {
+    return res.status(400).json({ message: '缺少 userId 或 richMenuId' });
+  }
+
+  try {
+    await linkRichMenu(userId, richMenuId);
+    res.status(200).json({ message: '更新成功' });
+  } catch (error) {
+    console.error('更新圖文選單錯誤:', error);
+    res.status(500).json({ message: '更新失敗' });
+  }
+});
+
+// --- 測試首頁（給 Render 掃 port 用）---
+app.get('/', (req, res) => {
+  res.send('🤖 LINE Reflection Bot is running!');
+});
+
+// --- 啟動伺服器 ---
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`🚀 Bot 正在監聽 port ${port}`);
+});
