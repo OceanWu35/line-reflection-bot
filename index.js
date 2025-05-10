@@ -161,7 +161,7 @@ async function handleEvent(event) {
 async function linkRichMenu(userId, richMenuId) {
   try {
     await client.linkRichMenuToUser(userId, richMenuId);
-    console.log(綁定 Rich Menu：${richMenuId} → 使用者 ${userId});
+    console.log(`綁定 Rich Menu：${richMenuId} → 使用者 ${userId}`);
   } catch (error) {
     console.error('Rich Menu 綁定錯誤:', error);
   }
