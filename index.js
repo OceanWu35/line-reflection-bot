@@ -61,7 +61,7 @@ async function queryMessages(userId, start, end) {
     .from('messages')
     .select('content, created_at')
     .eq('user_id', userId)
-    .gte('created_at', start)
+    .gte('created_at', start) // 確保時間範圍正確
     .lte('created_at', end)
     .order('created_at', { ascending: true });
 
@@ -116,11 +116,11 @@ async function handleEvent(event) {
     if (data === '查詢今日紀錄' || data === '查詢本週紀錄') {
       const isToday = data === '查詢今日紀錄';
       const start = isToday
-        ? dayjs().startOf('day').utc().format()
-        : dayjs().startOf('isoWeek').utc().format();
+        ? dayjs().startOf('day').utc().format() // 計算今天的起始時間
+        : dayjs().startOf('isoWeek').utc().format(); // 計算這週的起始時間
       const end = isToday
-        ? dayjs().endOf('day').utc().format()
-        : dayjs().endOf('isoWeek').utc().format();
+        ? dayjs().endOf('day').utc().format() // 計算今天的結束時間
+        : dayjs().endOf('isoWeek').utc().format(); // 計算這週的結束時間
       return replyWithMessages(userId, start, end, event.replyToken, isToday ? '📅 今日紀錄：' : '🗓️ 本週紀錄：');
     }
   }
