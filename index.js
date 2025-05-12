@@ -56,20 +56,17 @@ async function linkRichMenu(userId, menuId) {
 
 // --- 查詢訊息 ---
 async function queryMessages(userId, start, end) {
-  console.log(`🔎 查詢 ${userId} 的訊息（${start} ~ ${end}）`); // 印出查詢範圍
+  console.log(`🔎 查詢 ${userId} 的訊息（${start} ~ ${end}）`);
   const { data, error } = await supabase
     .from('messages')
     .select('content, created_at')
     .eq('user_id', userId)
-    .gte('created_at', start) // 確保時間範圍正確
-    .lte('created_at', end)
+    .gte('created_at', start)
+    .lt('created_at', end)
     .order('created_at', { ascending: true });
 
   if (error) console.error('❌ 查詢錯誤:', error);
-  
-  // 印出查詢結果
   console.log(`🔎 查詢結果: ${JSON.stringify(data)}`);
-
   return { data, error };
 }
 
@@ -86,7 +83,6 @@ async function replyWithMessages(userId, start, end, replyToken, title) {
 
   const replyText = messages.length
     ? messages.map((msg, i) => {
-        // 將時間轉換為台灣時間並格式化
         const formattedDate = dayjs(msg.created_at).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
         return `${i + 1}. ${msg.content} (發送時間: ${formattedDate})`;
       }).join('\n')
@@ -116,11 +112,12 @@ async function handleEvent(event) {
     if (data === '查詢今日紀錄' || data === '查詢本週紀錄') {
       const isToday = data === '查詢今日紀錄';
       const start = isToday
-        ? dayjs().startOf('day').utc().format() // 計算今天的起始時間
-        : dayjs().startOf('isoWeek').utc().format(); // 計算這週的起始時間
+        ? dayjs().tz('Asia/Taipei').startOf('day').utc().format()
+        : dayjs().tz('Asia/Taipei').startOf('isoWeek').utc().format();
       const end = isToday
-        ? dayjs().endOf('day').utc().format() // 計算今天的結束時間
-        : dayjs().endOf('isoWeek').utc().format(); // 計算這週的結束時間
+        ? dayjs().tz('Asia/Taipei').add(1, 'day').startOf('day').utc().format()
+        : dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
+
       return replyWithMessages(userId, start, end, event.replyToken, isToday ? '📅 今日紀錄：' : '🗓️ 本週紀錄：');
     }
   }
@@ -129,14 +126,14 @@ async function handleEvent(event) {
     const text = event.message.text.trim();
 
     if (contains(['查詢今日紀錄'])) {
-      const start = dayjs().startOf('day').utc().format();
-      const end = dayjs().endOf('day').utc().format();
+      const start = dayjs().tz('Asia/Taipei').startOf('day').utc().format();
+      const end = dayjs().tz('Asia/Taipei').add(1, 'day').startOf('day').utc().format();
       return replyWithMessages(userId, start, end, event.replyToken, '📅 今日紀錄：');
     }
 
     if (contains(['查詢本週紀錄'])) {
-      const start = dayjs().startOf('isoWeek').utc().format();
-      const end = dayjs().endOf('isoWeek').utc().format();
+      const start = dayjs().tz('Asia/Taipei').startOf('isoWeek').utc().format();
+      const end = dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
       return replyWithMessages(userId, start, end, event.replyToken, '🗓️ 本週紀錄：');
     }
 
@@ -147,7 +144,7 @@ async function handleEvent(event) {
         {
           user_id: userId,
           content: text,
-          created_at: dayjs().utc().toISOString()  // 儲存為 UTC 時間
+          created_at: dayjs().utc().toISOString()
         }
       ]);
 
@@ -157,7 +154,6 @@ async function handleEvent(event) {
       console.log(`✅ 已儲存訊息：${text}`);
     }
 
-    // 修改回覆訊息
     return client.replyMessage(event.replyToken, {
       type: 'text',
       text: `你說的是：「${text}」，我已經記錄起來囉！`
@@ -172,3 +168,4 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
+
