@@ -138,14 +138,17 @@ async function handleEvent(event) {
       return replyWithMessages(userId, start, end, event.replyToken, '🗓️ 本週紀錄：');
     }
 
-    // --- ✅ 儲存訊息：使用台灣時間轉換成 UTC ---
+    // ✅ 儲存訊息：使用台灣時間轉成 UTC 再存
+    const createdAt = dayjs().tz('Asia/Taipei').toISOString();
+    console.log(`🕒 實際儲存時間（台灣時間轉 UTC）: ${createdAt}`);
+
     const { error } = await supabase
       .from('messages')
       .insert([
         {
           user_id: userId,
           content: text,
-          created_at: dayjs().tz('Asia/Taipei').toISOString()  // << 這裡修正！
+          created_at: createdAt
         }
       ]);
 
