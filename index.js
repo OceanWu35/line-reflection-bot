@@ -94,6 +94,8 @@ async function handleEvent(event) {
       .lte('created_at', todayEnd)
       .order('created_at', { ascending: true });
 
+    console.log('查詢結果:', data);
+
     if (error) {
       console.error('Postback 查詢今日紀錄錯誤:', error);
       return client.replyMessage(event.replyToken, {
@@ -129,6 +131,8 @@ async function handleEvent(event) {
       .gte('created_at', startOfWeek)
       .lte('created_at', endOfWeek)
       .order('created_at', { ascending: true });
+
+    console.log('查詢結果:', data);
 
     if (error) {
       console.error('📛 Postback 查詢錯誤:', error);
@@ -173,6 +177,8 @@ async function handleEvent(event) {
       .lte('created_at', todayEnd)
       .order('created_at', { ascending: true });
 
+    console.log('查詢結果:', data);
+
     if (error) {
       console.error('📛 查詢今日紀錄錯誤:', error);
       return client.replyMessage(event.replyToken, {
@@ -205,6 +211,8 @@ async function handleEvent(event) {
       .gte('created_at', startOfWeek)
       .lte('created_at', endOfWeek)
       .order('created_at', { ascending: true });
+
+    console.log('查詢結果:', data);
 
     if (error) {
       console.error('📛 查詢本週紀錄錯誤:', error);
