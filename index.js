@@ -56,7 +56,7 @@ async function linkRichMenu(userId, menuId) {
 
 // --- 查詢訊息 ---
 async function queryMessages(userId, start, end) {
-  console.log(`🔎 查詢 ${userId} 的訊息（${start} ~ ${end}）`);
+  console.log(`🔎 查詢 ${userId} 的訊息（${start} ~ ${end}）`); // 印出查詢範圍
   const { data, error } = await supabase
     .from('messages')
     .select('content, created_at')
@@ -66,6 +66,10 @@ async function queryMessages(userId, start, end) {
     .order('created_at', { ascending: true });
 
   if (error) console.error('❌ 查詢錯誤:', error);
+  
+  // 印出查詢結果
+  console.log(`🔎 查詢結果: ${JSON.stringify(data)}`);
+
   return { data, error };
 }
 
