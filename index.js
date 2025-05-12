@@ -149,9 +149,10 @@ async function handleEvent(event) {
       console.log(`✅ 已儲存訊息：${text}`);
     }
 
+    // 修改回覆訊息
     return client.replyMessage(event.replyToken, {
       type: 'text',
-      text: '已收到你的訊息，謝謝你！'
+      text: `你說的是：「${text}」，我已經記錄起來囉！`
     });
   }
 
