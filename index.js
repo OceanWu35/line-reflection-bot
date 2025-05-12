@@ -7,6 +7,7 @@ import isoWeek from 'dayjs/plugin/isoWeek.js';
 dayjs.extend(isoWeek);
 
 dotenv.config();
+console.log('DEFAULT_RICH_MENU_ID:', process.env.DEFAULT_RICH_MENU_ID);  // 檢查是否成功讀取環境變數
 
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
