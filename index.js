@@ -63,6 +63,9 @@ async function handleEvent(event) {
   if (event.type === 'postback' && event.postback?.data === '查詢今日紀錄') {
     const todayStart = dayjs().startOf('day').utc().format();
     const todayEnd = dayjs().endOf('day').utc().format();
+     
+    console.log('今天的開始時間:', todayStart);  // 輸出 todayStart
+    console.log('今天的結束時間:', todayEnd);    // 輸出 todayEnd
 
     const { data, error } = await supabase
       .from('messages')
@@ -97,6 +100,9 @@ async function handleEvent(event) {
     const startOfWeek = dayjs().startOf('isoWeek').utc().format();
     const endOfWeek = dayjs().endOf('isoWeek').utc().format();
 
+    console.log('本週的開始時間:', startOfWeek);  // 輸出 startOfWeek
+    console.log('本週的結束時間:', endOfWeek);    // 輸出 endOfWeek
+    
     const { data, error } = await supabase
       .from('messages')
       .select('content, created_at')
