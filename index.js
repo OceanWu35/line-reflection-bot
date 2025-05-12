@@ -30,7 +30,6 @@ const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
 
-// ❗ 不可全域使用 express.json()，否則會破壞 LINE webhook 驗證
 app.post('/webhook', middleware(config), async (req, res) => {
   try {
     const results = await Promise.all(req.body.events.map(handleEvent));
@@ -41,7 +40,6 @@ app.post('/webhook', middleware(config), async (req, res) => {
   }
 });
 
-// ✅ 如果有其他 API，再針對其他路由加上 JSON 解析中介軟體
 app.use('/api', express.json());
 
 // --- Rich Menu 綁定 ---
@@ -118,6 +116,7 @@ async function handleEvent(event) {
         ? dayjs().tz('Asia/Taipei').add(1, 'day').startOf('day').utc().format()
         : dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
 
+      console.log(`📅 查詢範圍（${isToday ? '今日' : '本週'}）UTC: ${start} ~ ${end}`);
       return replyWithMessages(userId, start, end, event.replyToken, isToday ? '📅 今日紀錄：' : '🗓️ 本週紀錄：');
     }
   }
@@ -128,23 +127,25 @@ async function handleEvent(event) {
     if (contains(['查詢今日紀錄'])) {
       const start = dayjs().tz('Asia/Taipei').startOf('day').utc().format();
       const end = dayjs().tz('Asia/Taipei').add(1, 'day').startOf('day').utc().format();
+      console.log(`📅 查詢範圍（今日）UTC: ${start} ~ ${end}`);
       return replyWithMessages(userId, start, end, event.replyToken, '📅 今日紀錄：');
     }
 
     if (contains(['查詢本週紀錄'])) {
       const start = dayjs().tz('Asia/Taipei').startOf('isoWeek').utc().format();
       const end = dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
+      console.log(`📅 查詢範圍（本週）UTC: ${start} ~ ${end}`);
       return replyWithMessages(userId, start, end, event.replyToken, '🗓️ 本週紀錄：');
     }
 
-    // --- 儲存訊息到 Supabase ---
+    // --- ✅ 儲存訊息：使用台灣時間轉換成 UTC ---
     const { error } = await supabase
       .from('messages')
       .insert([
         {
           user_id: userId,
           content: text,
-          created_at: dayjs().utc().toISOString()
+          created_at: dayjs().tz('Asia/Taipei').toISOString()  // << 這裡修正！
         }
       ]);
 
@@ -168,4 +169,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
 });
-
