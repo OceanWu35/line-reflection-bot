@@ -29,7 +29,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANO
 const DEFAULT_RICH_MENU_ID = process.env.DEFAULT_RICH_MENU_ID;
 
 const app = express();
-app.use(express.json());
+
+// ❗ 不可全域使用 express.json()，否則會破壞 LINE webhook 驗證
 app.post('/webhook', middleware(config), async (req, res) => {
   try {
     const results = await Promise.all(req.body.events.map(handleEvent));
@@ -39,6 +40,9 @@ app.post('/webhook', middleware(config), async (req, res) => {
     res.status(500).end();
   }
 });
+
+// ✅ 如果有其他 API，再針對其他路由加上 JSON 解析中介軟體
+app.use('/api', express.json());
 
 // --- Rich Menu 綁定 ---
 async function linkRichMenu(userId, menuId) {
