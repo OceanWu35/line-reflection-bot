@@ -14,6 +14,25 @@ import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// 檢查 dayjs 是否正常處理時間
+console.log('當前時間（UTC）:', dayjs().utc().format()); // UTC 時間
+console.log('當前時間（本地時間）:', dayjs().format()); // 本地時間
+console.log('本週的開始時間（UTC）:', dayjs().startOf('isoWeek').utc().format()); // 本週開始時間
+console.log('本週的結束時間（UTC）:', dayjs().endOf('isoWeek').utc().format()); // 本週結束時間
+
+// 測試時區轉換
+console.log('當前時間（特定時區，如 Asia/Taipei）：', dayjs().tz('Asia/Taipei').format()); // 台北時間
+
+const todayStart = dayjs().startOf('day').utc().format();
+const todayEnd = dayjs().endOf('day').utc().format();
+const startOfWeek = dayjs().startOf('isoWeek').utc().format();
+const endOfWeek = dayjs().endOf('isoWeek').utc().format();
+
+console.log('今天的開始時間:', todayStart);  // 檢查今天的開始時間
+console.log('今天的結束時間:', todayEnd);    // 檢查今天的結束時間
+console.log('本週的開始時間:', startOfWeek);  // 檢查本週的開始時間
+console.log('本週的結束時間:', endOfWeek);    // 檢查本週的結束時間
+
 // --- LINE 設定 ---
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
