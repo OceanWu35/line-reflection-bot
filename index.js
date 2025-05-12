@@ -85,7 +85,11 @@ async function replyWithMessages(userId, start, end, replyToken, title) {
   }
 
   const replyText = messages.length
-    ? messages.map((msg, i) => `${i + 1}. ${msg.content}`).join('\n')
+    ? messages.map((msg, i) => {
+        // 將時間轉換為台灣時間並格式化
+        const formattedDate = dayjs(msg.created_at).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
+        return `${i + 1}. ${msg.content} (發送時間: ${formattedDate})`;
+      }).join('\n')
     : title.includes('今日')
       ? '你今天還沒有留下任何紀錄喔！'
       : '這週你還沒有留下任何紀錄喔！';
@@ -143,7 +147,7 @@ async function handleEvent(event) {
         {
           user_id: userId,
           content: text,
-          created_at: dayjs().utc().toISOString()
+          created_at: dayjs().utc().toISOString()  // 儲存為 UTC 時間
         }
       ]);
 
