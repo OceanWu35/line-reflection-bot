@@ -70,48 +70,7 @@ async function queryMessages(userId, start, end) {
   return { data, error };
 }
 
-async function uploadToSupabase(imageUrl) {
-  try {
-    console.log('🚀 下載圖片：', imageUrl);
-    const res = await fetch(imageUrl);
-    if (!res.ok) {
-      console.error('❌ 圖片下載失敗：', res.status, res.statusText);
-      return null;
-    }
-
-    const arrayBuffer = await res.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    console.log('✅ 圖片 buffer 取得成功，大小：', buffer.length);
-
-    const fileName = `wordclouds/${uuidv4()}.png`;
-
-    const { data, error } = await supabase.storage
-      .from('wordcloud-images')
-      .upload(fileName, buffer, {
-        contentType: 'image/png',
-        upsert: false
-      });
-
-    if (error) {
-      console.error('❌ 上傳圖片失敗:', error);
-      return null;
-    }
-
-    const { data: publicUrlData } = supabase
-      .storage
-      .from('wordcloud-images')
-      .getPublicUrl(fileName);
-
-    console.log('🌐 圖片已上傳，公開網址為：', publicUrlData?.publicUrl);
-    return publicUrlData?.publicUrl ?? null;
-  } catch (err) {
-    console.error('❌ 圖片轉存錯誤:', err);
-    return null;
-  }
-}
-
-// --- 產生文字雲網址 ---
+// --- 產生文字雲網址（不經過 Supabase） ---
 async function generateWordCloudImageUrl(userId, start, end) {
   const { data: messages, error } = await queryMessages(userId, start, end);
   if (error || !messages.length) {
@@ -124,10 +83,7 @@ async function generateWordCloudImageUrl(userId, start, end) {
   const quickChartUrl = `https://quickchart.io/wordcloud?format=png&width=600&height=600&fontFamily=Noto+Sans+TC&scale=2&rotation=0&colors=blue,green,indigo&backgroundColor=white&text=${encodedText}`;
 
   console.log('🖼️ QuickChart 文字雲網址：', quickChartUrl);
-
-  const publicImageUrl = await uploadToSupabase(quickChartUrl);
-  console.log('🌐 Supabase 公開圖片網址：', publicImageUrl);
-  return publicImageUrl;
+  return quickChartUrl; // 直接回傳 QuickChart 網址，不上傳 Supabase
 }
 
 // --- 回覆訊息封裝 ---
