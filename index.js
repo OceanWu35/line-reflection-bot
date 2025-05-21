@@ -73,17 +73,24 @@ async function queryMessages(userId, start, end) {
 // --- 產生文字雲網址（不經過 Supabase） ---
 async function generateWordCloudImageUrl(userId, start, end) {
   const { data: messages, error } = await queryMessages(userId, start, end);
-  if (error || !messages.length) {
-    return null;
-  }
+  if (error || !messages.length) return null;
+
+  const stopwords = ['我的文字雲', '查詢今日紀錄', '查詢本週紀錄'];
+  const allText = messages
+    .map(m => m.content)
+    .filter(content => !stopwords.includes(content))
+    .join(' ');
+
+  if (!allText || allText.trim().length < 2) return null;
 
   const allText = messages.map(m => m.content).join(' ');
-  const encodedText = encodeURIComponent(allText);
+  const trimmedText = allText.slice(0, 800); // 最多 800 字元，避免超過網址長度
+  const encodedText = encodeURIComponent(trimmedText);
 
   const quickChartUrl = `https://quickchart.io/wordcloud?format=png&width=600&height=600&fontFamily=Noto+Sans+TC&scale=2&rotation=0&colors=blue,green,indigo&backgroundColor=white&text=${encodedText}`;
 
   console.log('🖼️ QuickChart 文字雲網址：', quickChartUrl);
-  return quickChartUrl; // 直接回傳 QuickChart 網址，不上傳 Supabase
+  return quickChartUrl;
 }
 
 // --- 回覆訊息封裝 ---
