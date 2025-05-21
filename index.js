@@ -76,7 +76,10 @@ async function generateWordCloudImageUrl(userId, start, end) {
   }
 
   const allText = messages.map(m => m.content).join(' ');
-  const imageUrl = `https://quickchart.io/wordcloud?text=${encodeURIComponent(allText)}`;
+  const encodedText = encodeURIComponent(allText);
+
+  // 🔥 關鍵：改為 format=png（支援 LINE 顯示）
+  const imageUrl = `https://quickchart.io/wordcloud?format=png&width=500&height=500&text=${encodedText}`;
   return imageUrl;
 }
 
@@ -149,8 +152,8 @@ async function handleEvent(event) {
       console.log(`📅 查詢範圍（本週）UTC: ${start} ~ ${end}`);
       return replyWithMessages(userId, start, end, event.replyToken, '🗓️ 本週紀錄：');
     }
-    
-      if (text === '產生文字雲') {
+
+      if (text === '我的文字雲') {
     const start = dayjs().tz('Asia/Taipei').startOf('isoWeek').utc().format();
     const end = dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
 
