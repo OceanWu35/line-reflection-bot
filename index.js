@@ -83,13 +83,43 @@ async function generateWordCloudImageUrl(userId, start, end) {
 
   if (!allText || allText.trim().length < 2) return null;
 
-  const trimmedText = allText.slice(0, 800); // 最多 800 字元，避免超過網址長度
-  const encodedText = encodeURIComponent(trimmedText);
+  const chartConfig = {
+    format: 'png',
+    width: 600,
+    height: 600,
+    backgroundColor: 'white',
+    chart: {
+      type: 'wordcloud',
+      data: {
+        text: allText
+      },
+      options: {
+        fontFamily: 'Noto Sans TC',
+        rotation: 0,
+        colors: ['blue', 'green', 'indigo']
+      }
+    }
+  };
 
-  const quickChartUrl = `https://quickchart.io/wordcloud?format=png&width=600&height=600&fontFamily=Noto+Sans+TC&scale=2&rotation=0&colors=blue,green,indigo&backgroundColor=white&text=${encodedText}`;
+  try {
+    const res = await fetch('https://quickchart.io/chart/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(chartConfig)
+    });
 
-  console.log('🖼️ QuickChart 文字雲網址：', quickChartUrl);
-  return quickChartUrl;
+    const result = await res.json();
+
+    if (result.success && result.url) {
+      console.log('🖼️ QuickChart 產生的圖片網址：', result.url);
+      return result.url;
+    }
+
+    return null;
+  } catch (err) {
+    console.error('🛑 QuickChart 錯誤:', err);
+    return null;
+  }
 }
 
 // --- 回覆訊息封裝 ---
