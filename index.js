@@ -8,6 +8,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid'; // 生成唯一檔名
+import nodejieba from 'nodejieba';
 
 dotenv.config();
 dayjs.extend(isoWeek);
@@ -83,6 +84,20 @@ async function generateWordCloudImageUrl(userId, start, end) {
 
   if (!allText || allText.trim().length < 2) return null;
 
+  // 使用 nodejieba 斷詞並統計詞頻
+  const words = nodejieba.cut(allText);
+  const wordFreqMap = {};
+  words.forEach(word => {
+    if (word.length > 1 && !stopwords.includes(word)) {
+      wordFreqMap[word] = (wordFreqMap[word] || 0) + 1;
+    }
+  });
+
+  const labels = Object.keys(wordFreqMap);
+  const counts = Object.values(wordFreqMap);
+
+  if (labels.length === 0) return null;
+
   const chartConfig = {
     format: 'png',
     width: 600,
@@ -91,12 +106,18 @@ async function generateWordCloudImageUrl(userId, start, end) {
     chart: {
       type: 'wordcloud',
       data: {
-        text: allText
+        labels: labels,
+        datasets: [
+          {
+            label: '詞頻統計',
+            data: counts
+          }
+        ]
       },
       options: {
         fontFamily: 'Noto Sans TC',
         rotation: 0,
-        colors: ['blue', 'green', 'indigo']
+        colors: ['#007acc', '#00b894', '#e17055']
       }
     }
   };
