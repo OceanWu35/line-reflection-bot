@@ -68,6 +68,18 @@ async function queryMessages(userId, start, end) {
   return { data, error };
 }
 
+// --- 產生文字雲網址 ---
+async function generateWordCloudImageUrl(userId, start, end) {
+  const { data: messages, error } = await queryMessages(userId, start, end);
+  if (error || !messages.length) {
+    return null;
+  }
+
+  const allText = messages.map(m => m.content).join(' ');
+  const imageUrl = `https://quickchart.io/wordcloud?text=${encodeURIComponent(allText)}`;
+  return imageUrl;
+}
+
 // --- 回覆訊息封裝 ---
 async function replyWithMessages(userId, start, end, replyToken, title) {
   const { data: messages, error } = await queryMessages(userId, start, end);
@@ -137,6 +149,26 @@ async function handleEvent(event) {
       console.log(`📅 查詢範圍（本週）UTC: ${start} ~ ${end}`);
       return replyWithMessages(userId, start, end, event.replyToken, '🗓️ 本週紀錄：');
     }
+    
+      if (text === '產生文字雲') {
+    const start = dayjs().tz('Asia/Taipei').startOf('isoWeek').utc().format();
+    const end = dayjs().tz('Asia/Taipei').add(1, 'week').startOf('isoWeek').utc().format();
+
+    const imageUrl = await generateWordCloudImageUrl(userId, start, end);
+
+    if (!imageUrl) {
+      return client.replyMessage(event.replyToken, {
+        type: 'text',
+        text: '你這週還沒有記錄任何訊息喔，沒辦法產生文字雲～'
+      });
+    }
+
+    return client.replyMessage(event.replyToken, {
+      type: 'image',
+      originalContentUrl: imageUrl,
+      previewImageUrl: imageUrl
+    });
+  }
 
     // ✅ 儲存訊息：使用台灣時間轉成 UTC 再存
     const createdAt = dayjs().tz('Asia/Taipei').toISOString();
