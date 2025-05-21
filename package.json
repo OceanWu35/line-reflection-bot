@@ -16,8 +16,6 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
-    "node-jieba": "^0.0.3",
-    "nodejieba": "^3.4.4",
     "uuid": "^11.1.0"
   },
   "type": "module"

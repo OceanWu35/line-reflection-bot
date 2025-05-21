@@ -8,9 +8,11 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid'; // 生成唯一檔名
-import nodejieba from 'nodejieba';
+import jieba from 'node-jieba';
 
 dotenv.config();
+jieba.load();
+
 dayjs.extend(isoWeek);
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -74,73 +76,16 @@ async function queryMessages(userId, start, end) {
 // --- 產生文字雲網址（不經過 Supabase） ---
 async function generateWordCloudImageUrl(userId, start, end) {
   const { data: messages, error } = await queryMessages(userId, start, end);
-  if (error || !messages.length) return null;
-
-  const stopwords = ['我的文字雲', '查詢今日紀錄', '查詢本週紀錄'];
-  const allText = messages
-    .map(m => m.content)
-    .filter(content => !stopwords.includes(content))
-    .join(' ');
-
-  if (!allText || allText.trim().length < 2) return null;
-
-  // 使用 nodejieba 斷詞並統計詞頻
-  const words = nodejieba.cut(allText);
-  const wordFreqMap = {};
-  words.forEach(word => {
-    if (word.length > 1 && !stopwords.includes(word)) {
-      wordFreqMap[word] = (wordFreqMap[word] || 0) + 1;
-    }
-  });
-
-  const labels = Object.keys(wordFreqMap);
-  const counts = Object.values(wordFreqMap);
-
-  if (labels.length === 0) return null;
-
-  const chartConfig = {
-    format: 'png',
-    width: 600,
-    height: 600,
-    backgroundColor: 'white',
-    chart: {
-      type: 'wordcloud',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: '詞頻統計',
-            data: counts
-          }
-        ]
-      },
-      options: {
-        fontFamily: 'Noto Sans TC',
-        rotation: 0,
-        colors: ['#007acc', '#00b894', '#e17055']
-      }
-    }
-  };
-
-  try {
-    const res = await fetch('https://quickchart.io/chart/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(chartConfig)
-    });
-
-    const result = await res.json();
-
-    if (result.success && result.url) {
-      console.log('🖼️ QuickChart 產生的圖片網址：', result.url);
-      return result.url;
-    }
-
-    return null;
-  } catch (err) {
-    console.error('🛑 QuickChart 錯誤:', err);
+  if (error || !messages.length) {
     return null;
   }
+
+  const allText = messages.map(m => m.content).join(' ');
+  const encodedText = encodeURIComponent(allText);
+
+  // 🔥 關鍵：改為 format=png（支援 LINE 顯示）
+  const imageUrl = `https://quickchart.io/wordcloud?format=png&width=500&height=500&text=${encodedText}`;
+  return imageUrl;
 }
 
 // --- 回覆訊息封裝 ---
