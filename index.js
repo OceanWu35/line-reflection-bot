@@ -8,7 +8,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid'; // 生成唯一檔名
-import Jieba from 'node-jieba';
+import nodejieba from 'nodejieba';
 
 dotenv.config();
 dayjs.extend(isoWeek);
@@ -85,7 +85,7 @@ async function generateWordCloudImageUrl(userId, start, end) {
   if (!allText || allText.trim().length < 2) return null;
 
   // 使用 nodejieba 斷詞並統計詞頻
-  const words = Jieba.cut(allText);
+  const words = nodejieba.cut(allText);
   const wordFreqMap = {};
   words.forEach(word => {
     if (word.length > 1 && !stopwords.includes(word)) {
