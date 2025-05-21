@@ -83,7 +83,6 @@ async function generateWordCloudImageUrl(userId, start, end) {
 
   if (!allText || allText.trim().length < 2) return null;
 
-  const allText = messages.map(m => m.content).join(' ');
   const trimmedText = allText.slice(0, 800); // 最多 800 字元，避免超過網址長度
   const encodedText = encodeURIComponent(trimmedText);
 
