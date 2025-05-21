@@ -10,7 +10,6 @@ import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid'; // 生成唯一檔名
 
 dotenv.config();
-jieba.load();
 
 dayjs.extend(isoWeek);
 dayjs.extend(utc);
