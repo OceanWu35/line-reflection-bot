@@ -8,7 +8,6 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import fetch from 'node-fetch';
 import { v4 as uuidv4 } from 'uuid'; // 生成唯一檔名
-import jieba from 'node-jieba';
 
 dotenv.config();
 jieba.load();
