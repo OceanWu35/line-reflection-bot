@@ -79,7 +79,7 @@ async function generateWordCloudImageUrl(userId, start, end) {
   const encodedText = encodeURIComponent(allText);
 
   // 🔥 關鍵：改為 format=png（支援 LINE 顯示）
-  const imageUrl = `https://quickchart.io/wordcloud?format=png&width=500&height=500&text=${encodedText}`;
+  const imageUrl = `https://quickchart.io/wordcloud?format=png&width=600&height=600&fontFamily=Noto+Sans+TC&scale=2&rotation=0&colors=blue,green,indigo&backgroundColor=white&text=${encodedText}`;
   return imageUrl;
 }
 
